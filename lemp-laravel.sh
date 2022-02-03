@@ -64,7 +64,7 @@ LOG_FILE="install_log.txt"
 while [[ $USERNAME == "" ||  $PASSWORD == "" || $MYSQL_ROOT_PASSWORD == ""  || $PROJECT_DIRECTORY == "" ]]
 do
     clear
-    which curl && curl https://raw.githubusercontent.com/yasapurnama/lemp-laravel/master/banner.txt
+    which curl > /dev/null 2>&1 && curl https://raw.githubusercontent.com/yasapurnama/lemp-laravel/master/banner.txt
     echo -e "${GREEN}Wellcome to LEMP stack installation for Laravel application${RESET}\n"
     echo -e "You need to fillup the following variables:"
     echo -e "USERNAME=${USERNAME}"
