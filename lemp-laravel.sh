@@ -316,6 +316,7 @@ PROD_DOMAIN_IP=$(dig +short ${DOMAIN_NAME} A)
 DEV_DOMAIN_IP=$(dig +short dev.${DOMAIN_NAME} A)
 STAGING_DOMAIN_IP=$(dig +short staging.${DOMAIN_NAME} A)
 
+CERT_COMMENT="# "
 REQUEST_DOMAINS=""
 
 if [[ $PROD_DOMAIN_IP == $SERVER_IP ]]; then
@@ -328,7 +329,6 @@ if [[ $PROD_DOMAIN_IP == $SERVER_IP ]]; then
 
   certbot renew --dry-run >> ${LOG_FILE} 2>&1
 
-  CERT_COMMENT="# "
   [[ -f /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem ]] && CERT_COMMENT=""
 
 fi
