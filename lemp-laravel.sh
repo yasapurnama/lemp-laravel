@@ -311,11 +311,27 @@ check_cmd_status "link certbot.."
 
 
 echo -e "${GREEN}[*]${RESET} Generate SSL Certificate.."
-certbot certonly --nginx --non-interactive --agree-tos --domains ${DOMAIN_NAME},dev.${DOMAIN_NAME},staging.${DOMAIN_NAME} --email ${DOMAIN_EMAIL} >> ${LOG_FILE} 2>&1
-check_cmd_status "certbot generate certificate.."
 
-certbot renew --dry-run >> ${LOG_FILE} 2>&1
-check_cmd_status "certbot automatic renewal.."
+PROD_DOMAIN_IP=$(dig +short ${DOMAIN_NAME} A)
+DEV_DOMAIN_IP=$(dig +short dev.${DOMAIN_NAME} A)
+STAGING_DOMAIN_IP=$(dig +short staging.${DOMAIN_NAME} A)
+
+REQUEST_DOMAINS=""
+
+if [[ $PROD_DOMAIN_IP == $SERVER_IP ]]; then
+
+  REQUEST_DOMAINS="${DOMAIN_NAME}"
+  [[ DEV_DOMAIN_IP == $SERVER_IP ]] && REQUEST_DOMAINS="${REQUEST_DOMAINS},dev.${DOMAIN_NAME}"
+  [[ STAGING_DOMAIN_IP == $SERVER_IP ]] && REQUEST_DOMAINS="${REQUEST_DOMAINS},staging.${DOMAIN_NAME}"
+
+  certbot certonly --nginx --non-interactive --agree-tos --domains ${REQUEST_DOMAINS} --email ${DOMAIN_EMAIL} >> ${LOG_FILE} 2>&1
+
+  certbot renew --dry-run >> ${LOG_FILE} 2>&1
+
+  CERT_COMMENT="# "
+  [[ -f /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem ]] && CERT_COMMENT=""
+
+fi
 
 
 # Configure nginx
@@ -332,14 +348,14 @@ server {
         listen 443 ssl http2;
         server_name ${DOMAIN_NAME};
 
-        ssl_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
-        ssl_certificate_key /etc/letsencrypt/live/${DOMAIN_NAME}/privkey.pem;
-        include /etc/letsencrypt/options-ssl-nginx.conf;
-        ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+        ${CERT_COMMENT}ssl_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
+        ${CERT_COMMENT}ssl_certificate_key /etc/letsencrypt/live/${DOMAIN_NAME}/privkey.pem;
+        ${CERT_COMMENT}include /etc/letsencrypt/options-ssl-nginx.conf;
+        ${CERT_COMMENT}ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
-        ssl_stapling on;
-        ssl_stapling_verify on;
-        ssl_trusted_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
+        ${CERT_COMMENT}ssl_stapling on;
+        ${CERT_COMMENT}ssl_stapling_verify on;
+        ${CERT_COMMENT}ssl_trusted_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
 
         add_header X-Frame-Options "SAMEORIGIN";
         add_header X-Content-Type-Options "nosniff";
@@ -420,14 +436,14 @@ server {
         listen 443 ssl http2;
         server_name dev.${DOMAIN_NAME};
 
-        ssl_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
-        ssl_certificate_key /etc/letsencrypt/live/${DOMAIN_NAME}/privkey.pem;
-        include /etc/letsencrypt/options-ssl-nginx.conf;
-        ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+        ${CERT_COMMENT}ssl_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
+        ${CERT_COMMENT}ssl_certificate_key /etc/letsencrypt/live/${DOMAIN_NAME}/privkey.pem;
+        ${CERT_COMMENT}include /etc/letsencrypt/options-ssl-nginx.conf;
+        ${CERT_COMMENT}ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
-        ssl_stapling on;
-        ssl_stapling_verify on;
-        ssl_trusted_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
+        ${CERT_COMMENT}ssl_stapling on;
+        ${CERT_COMMENT}ssl_stapling_verify on;
+        ${CERT_COMMENT}ssl_trusted_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
 
         add_header X-Frame-Options "SAMEORIGIN";
         add_header X-Content-Type-Options "nosniff";
@@ -498,14 +514,14 @@ server {
         listen 443 ssl http2;
         server_name staging.${DOMAIN_NAME};
 
-        ssl_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
-        ssl_certificate_key /etc/letsencrypt/live/${DOMAIN_NAME}/privkey.pem;
-        include /etc/letsencrypt/options-ssl-nginx.conf;
-        ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+        ${CERT_COMMENT}ssl_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
+        ${CERT_COMMENT}ssl_certificate_key /etc/letsencrypt/live/${DOMAIN_NAME}/privkey.pem;
+        ${CERT_COMMENT}include /etc/letsencrypt/options-ssl-nginx.conf;
+        ${CERT_COMMENT}ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
-        ssl_stapling on;
-        ssl_stapling_verify on;
-        ssl_trusted_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
+        ${CERT_COMMENT}ssl_stapling on;
+        ${CERT_COMMENT}ssl_stapling_verify on;
+        ${CERT_COMMENT}ssl_trusted_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
 
         add_header X-Frame-Options "SAMEORIGIN";
         add_header X-Content-Type-Options "nosniff";
@@ -737,8 +753,12 @@ echo -e ""
 echo -e "[Website]"
 echo -e "  [PRODUCTION]"
 echo -e "    URL: https://${DOMAIN_NAME}/"
+if [[ STAGING_DOMAIN_IP == SERVER_IP ]]; then
 echo -e "  [STAGING]"
 echo -e "    URL: https://staging.${DOMAIN_NAME}/"
+fi
+if [[ DEV_DOMAIN_IP == $SERVER_IP ]]; then
 echo -e "  [DEVELOPMENT]"
 echo -e "    URL: https://dev.${DOMAIN_NAME}/"
+fi
 echo -e "${GREEN}====================================================${RESET}"
