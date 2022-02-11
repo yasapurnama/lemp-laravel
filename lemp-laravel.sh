@@ -319,7 +319,6 @@ DEV_DOMAIN_IP=$(dig +short dev.${DOMAIN_NAME} A)
 STAGING_DOMAIN_IP=$(dig +short staging.${DOMAIN_NAME} A)
 
 CERT_COMMENT="# "
-CERT_UNCOMMENT=""
 REQUEST_DOMAINS=""
 
 if [[ $PROD_DOMAIN_IP == $SERVER_IP ]]; then
@@ -332,7 +331,7 @@ if [[ $PROD_DOMAIN_IP == $SERVER_IP ]]; then
 
   certbot renew --dry-run >> ${LOG_FILE} 2>&1
 
-  [[ -f /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem ]] && CERT_COMMENT=""; CERT_UNCOMMENT="# "
+  [[ -f /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem ]] && CERT_COMMENT="";
 
 fi
 
@@ -414,15 +413,15 @@ server {
         error_log /var/log/nginx/${DOMAIN_NAME}.error.log;
 }
 
-${CERT_UNCOMMENT}server {
-${CERT_UNCOMMENT}        listen 80;
-${CERT_UNCOMMENT}        server_name ${DOMAIN_NAME};
-${CERT_UNCOMMENT}        error_log   /dev/null   crit;
-${CERT_UNCOMMENT}        access_log off;
-${CERT_UNCOMMENT}        location / {
-${CERT_UNCOMMENT}                return 301 https://\$host\$request_uri;
-${CERT_UNCOMMENT}        }
-${CERT_UNCOMMENT}}
+${CERT_COMMENT}server {
+${CERT_COMMENT}        listen 80;
+${CERT_COMMENT}        server_name ${DOMAIN_NAME};
+${CERT_COMMENT}        error_log   /dev/null   crit;
+${CERT_COMMENT}        access_log off;
+${CERT_COMMENT}        location / {
+${CERT_COMMENT}                return 301 https://\$host\$request_uri;
+${CERT_COMMENT}        }
+${CERT_COMMENT}}
 
 # server for redirecting from IP to DNS
 server {
@@ -503,15 +502,15 @@ server {
         error_log /var/log/nginx/dev.${DOMAIN_NAME}.error.log;
 }
 
-${CERT_UNCOMMENT}server {
-${CERT_UNCOMMENT}        listen 80;
-${CERT_UNCOMMENT}        server_name dev.${DOMAIN_NAME};
-${CERT_UNCOMMENT}        error_log   /dev/null   crit;
-${CERT_UNCOMMENT}        access_log off;
-${CERT_UNCOMMENT}        location / {
-${CERT_UNCOMMENT}                return 301 https://\$host\$request_uri;
-${CERT_UNCOMMENT}        }
-${CERT_UNCOMMENT}}
+${CERT_COMMENT}server {
+${CERT_COMMENT}        listen 80;
+${CERT_COMMENT}        server_name dev.${DOMAIN_NAME};
+${CERT_COMMENT}        error_log   /dev/null   crit;
+${CERT_COMMENT}        access_log off;
+${CERT_COMMENT}        location / {
+${CERT_COMMENT}                return 301 https://\$host\$request_uri;
+${CERT_COMMENT}        }
+${CERT_COMMENT}}
 EOF
 
 cat <<EOF > ${NGINX_SITEAVAILABLE_DIR}/staging.${DOMAIN_NAME}.conf
@@ -582,15 +581,15 @@ server {
         error_log /var/log/nginx/staging.${DOMAIN_NAME}.error.log;
 }
 
-${CERT_UNCOMMENT}server {
-${CERT_UNCOMMENT}        listen 80;
-${CERT_UNCOMMENT}        server_name staging.${DOMAIN_NAME};
-${CERT_UNCOMMENT}        error_log   /dev/null   crit;
-${CERT_UNCOMMENT}        access_log off;
-${CERT_UNCOMMENT}        location / {
-${CERT_UNCOMMENT}                return 301 https://\$host\$request_uri;
-${CERT_UNCOMMENT}        }
-${CERT_UNCOMMENT}}
+${CERT_COMMENT}server {
+${CERT_COMMENT}        listen 80;
+${CERT_COMMENT}        server_name staging.${DOMAIN_NAME};
+${CERT_COMMENT}        error_log   /dev/null   crit;
+${CERT_COMMENT}        access_log off;
+${CERT_COMMENT}        location / {
+${CERT_COMMENT}                return 301 https://\$host\$request_uri;
+${CERT_COMMENT}        }
+${CERT_COMMENT}}
 EOF
 
 ln -sf ${NGINX_SITEAVAILABLE_DIR}/${DOMAIN_NAME}.conf ${NGINX_SITEENABLE_DIR}/${DOMAIN_NAME}.conf >> ${LOG_FILE} 2>&1
