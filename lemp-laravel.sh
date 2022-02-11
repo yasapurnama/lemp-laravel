@@ -332,7 +332,7 @@ if [[ $PROD_DOMAIN_IP == $SERVER_IP ]]; then
 
   certbot renew --dry-run >> ${LOG_FILE} 2>&1
 
-  [[ -f /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem ]] && CERT_COMMENT="" && CERT_UNCOMMENT="# "
+  [[ -f /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem ]] && CERT_COMMENT=""; CERT_UNCOMMENT="# "
 
 fi
 
