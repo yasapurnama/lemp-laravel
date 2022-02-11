@@ -173,6 +173,8 @@ check_cmd_status "update repository.."
 apt install -y php${PHP_VERSION}-{fpm,mysql,mbstring,xml,zip,soap,gd,curl,imagick,cli,bcmath,redis} >> ${LOG_FILE} 2>&1
 check_cmd_status "install php.."
 
+update-alternatives --set php $(which php${PHP_VERSION})
+
 
 # Configure PHP
 echo -e "${GREEN}[*]${RESET} Configure php.ini.."
