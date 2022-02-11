@@ -274,7 +274,7 @@ echo -e "${GREEN}[*]${RESET} Configure php-fpm.."
 [[ -f ${PHP_FPM_POOL_DIR}/www.conf ]] && mv ${PHP_FPM_POOL_DIR}/www.conf{,.bckp} >> ${LOG_FILE} 2>&1
 
 # Create new php-fpm config (project specify)
-PHP_FPM_SOCK="/var/run/php-fpm-${USERNAME}.sock"
+PHP_FPM_SOCK="/var/run/php${PHP_VERSION}-fpm-${USERNAME}.sock"
 
 cat <<EOF > ${PHP_FPM_POOL_DIR}/${USERNAME}.conf
 [${USERNAME}]
