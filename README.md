@@ -33,7 +33,7 @@ Use quick bash installer with default settings:
 
 ### Manual Install with Custom Variables
 ```bash
-  $ wget curl https://raw.githubusercontent.com/yasapurnama/lemp-laravel/master/lemp-laravel.sh
+  $ wget https://raw.githubusercontent.com/yasapurnama/lemp-laravel/master/lemp-laravel.sh
   $ vim lemp-laravel.sh
 ```
 
