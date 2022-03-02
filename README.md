@@ -3,9 +3,8 @@
 ![GitHub all releases](https://img.shields.io/github/downloads/yasapurnama/lemp-laravel/total)
 [![GitHub license](https://img.shields.io/github/license/yasapurnama/lemp-laravel)](https://github.com/yasapurnama/lemp-laravel/blob/master/LICENSE)
 
+LEMP Laravel Installer for Ubuntu Server, tested on `Ubuntu 18.04 LTS` and `Ubuntu 20.04 LTS`.
 ![lemp-laravel](https://user-images.githubusercontent.com/12730759/151770303-1ea5e6e9-48e1-4f07-b4ac-ffdd4a1bd588.png)
-LEMP Laravel Installer
-
 
 ## Installation
 
@@ -19,19 +18,19 @@ Install screen
   $ apt-get install screen
 ```
 
-Creat screen session
+Create screen session
 ```bash
   $ screen
 ```
 
-### Quick Installer
+### Quick Installer (Option 1)
 Use quick bash installer with default settings:
 
 ```bash
   $ curl https://raw.githubusercontent.com/yasapurnama/lemp-laravel/master/lemp-laravel.sh | bash
 ```
 
-### Manual Install with Custom Variables
+### Manual Install with Custom Variables (Option 2)
 ```bash
   $ wget https://raw.githubusercontent.com/yasapurnama/lemp-laravel/master/lemp-laravel.sh
   $ vim lemp-laravel.sh
@@ -50,8 +49,8 @@ Here are variables that you can change base on your need.
 | PHP_MEMORY_LIMIT      	  | 128M          | PHP memory limit                                                                                              |
 | PHP_UPLOAD_MAX_FILESIZE  	| 5M            | PHP upload max file size                                                                                      |
 | PHP_POST_MAX_SIZE  	      | 5M            | PHP post max size                                                                                             |
-| PHP_MAX_EXECUTION_TIME    | 300           | PHP max execution time (in milliseconds)                                                                      |
-| PHP_MAX_INPUT_TIME        | 300           | PHP max input time (in milliseconds)                                                                          |
+| PHP_MAX_EXECUTION_TIME    | 300           | PHP max execution time (in seconds)                                                                           |
+| PHP_MAX_INPUT_TIME        | 300           | PHP max input time (in seconds)                                                                               |
 | PHP_MAX_FILE_UPLOAD       | 100           | PHP max file upload                                                                                           |
 | FPM_MAX_CHILDREN          | 50            | PHP FPM max children                                                                                          |
 | FPM_START_SERVERS         | 20            | PHP FPM start servers                                                                                         |
@@ -64,6 +63,19 @@ Here are variables that you can change base on your need.
 ```bash
   $ chmod +x lemp-laravel.sh
   $ ./lemp-laravel.sh
+```
+
+### Troubleshoot
+If there's `Broken pipe` in ssh connection you can continue the installation.
+
+List screen sessions and find the session id (SID)
+```bash
+  $ screen -ls
+```
+
+Restore screen session
+```bash
+  $ screen -r $SID
 ```
 
 ## Contributing
