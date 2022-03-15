@@ -15,18 +15,18 @@ if [[ "${EUID}" -ne 0 ]]; then
 fi
 
 # Variables
-USERNAME="lempla" #DUMMY
-PASSWORD="abc12345" #DUMMY
-MYSQL_ROOT_PASSWORD="abc12345" #DUMMY
-PROJECT_DIRECTORY="lempla" #DUMMY
-DOMAIN_NAME="lemplaravel.php-dev.net" #DUMMY
-DOMAIN_EMAIL="yasapurnama@gmail.com" #DUMMY
+USERNAME=""
+PASSWORD=""
+MYSQL_ROOT_PASSWORD=""
+PROJECT_DIRECTORY=""
+DOMAIN_NAME=""
+DOMAIN_EMAIL=""
 
 # Centos Version
 CENTOS_VERSION="7"
 
 #Advance Configuration
-PHP_VERSION="81" # change base on your need, see LTS support https://www.php.net/supported-versions.php
+PHP_VERSION="74" # change base on your need, see LTS support https://www.php.net/supported-versions.php
 PHPMYADMIN_VERSION="5.1.1" # check latest version https://www.phpmyadmin.net/downloads/
 NVM_VERSION="v0.39.0" # check latest version https://github.com/nvm-sh/nvm/releases
 NODE_VERSION="v16.13.1" # change base on your need, see LTS support https://nodejs.org/en/about/releases/
@@ -69,7 +69,7 @@ do
   echo ""
 
   if [[ $USERNAME == "" ]]; then
-    echo -e "${GREEN}[*]${RESET} Setup Varibales:"
+    echo -e "${GREEN}[*]${RESET} Setup Variables:"
     echo -n "USERNAME:"
     read USERNAME
   fi
@@ -110,7 +110,7 @@ MYSQL_PROD_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-16})
 MYSQL_DEV_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-16})
 MYSQL_STAGING_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-16})
 SERVER_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
-SERVER_IP="127.0.0.1" #DUMMY
+# SERVER_IP="127.0.0.1" #DUMMY
 PHP_FPM_POOL_DIR="/etc/php-fpm.d"
 PHP_INI="/etc/php.ini"
 NGINX_SITECONFIG="/etc/nginx/conf.d"
@@ -238,7 +238,7 @@ check_cmd_status "copy phpMyAdmin.."
 rm -rf phpMyAdmin-${PHPMYADMIN_VERSION}-english >> ${LOG_FILE} 2>&1
 check_cmd_status "remove source phpMyAdmin.."
 
-sed -e "s|cfg\['blowfish_secret'\] = ''|cfg['blowfish_secret'] = '$(openssl rand -base64 32)'|" /home/${USERNAME}/phpmyadmin/config.sample.inc.php > /home/${USERNAME}/phpmyadmin/config.inc.php >> ${LOG_FILE} 2>&1
+sed -e "s|cfg\['blowfish_secret'\] = ''|cfg['blowfish_secret'] = '$(openssl rand -base64 32)'|" /home/${USERNAME}/phpmyadmin/config.sample.inc.php > /home/${USERNAME}/phpmyadmin/config.inc.php
 check_cmd_status "Set blowfish secret phpMyAdmin.."
 
 mkdir -p /home/${USERNAME}/phpmyadmin/tmp; chmod 777 /home/${USERNAME}/phpmyadmin/tmp >> ${LOG_FILE} 2>&1
@@ -308,12 +308,14 @@ check_cmd_status "install snap.."
 
 systemctl enable --now snapd >> ${LOG_FILE} 2>&1
 
-sleep 5
+sleep 10
 
 snap install core >> ${LOG_FILE} 2>&1
 check_cmd_status "install snap core.."
 
 systemctl restart snapd >> ${LOG_FILE} 2>&1
+
+sleep 5
 
 snap refresh core >> ${LOG_FILE} 2>&1
 check_cmd_status "refresh snap.."
@@ -416,9 +418,9 @@ server {
         # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
         location ~ \.php\$ {
                 include snippets/fastcgi-php.conf;
-        #       # With php7.0-cgi alone:
+        #       # With php-cgi alone:
         #       fastcgi_pass 127.0.0.1:9000;
-        #       # With php7.0-fpm:
+        #       # With php-fpm:
                 fastcgi_pass unix:${PHP_FPM_SOCK};
         }
 
@@ -505,9 +507,9 @@ server {
         # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
         location ~ \.php\$ {
                 include snippets/fastcgi-php.conf;
-        #       # With php7.0-cgi alone:
+        #       # With php-cgi alone:
         #       fastcgi_pass 127.0.0.1:9000;
-        #       # With php7.0-fpm:
+        #       # With php-fpm:
                 fastcgi_pass unix:${PHP_FPM_SOCK};
         }
 
@@ -584,9 +586,9 @@ server {
         # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
         location ~ \.php\$ {
                 include snippets/fastcgi-php.conf;
-        #       # With php7.0-cgi alone:
+        #       # With php-cgi alone:
         #       fastcgi_pass 127.0.0.1:9000;
-        #       # With php7.0-fpm:
+        #       # With php-fpm:
                 fastcgi_pass unix:${PHP_FPM_SOCK};
         }
 
@@ -702,10 +704,10 @@ check_cmd_status "add group supervisor.."
 usermod -aG supervisor root; usermod -aG supervisor ${USERNAME} >> ${LOG_FILE} 2>&1
 check_cmd_status "add user to supervisor group.."
 
-chown root:supervisor /var/run/supervisord.pid >> ${LOG_FILE} 2>&1
+chown root:supervisor /var/run/supervisor/supervisor.sock >> ${LOG_FILE} 2>&1
 check_cmd_status "change owner supervisor sock.."
 
-sed -i 's/chmod=0700/chown=root:supervisor\nchmod=0770/g' /etc/supervisord.conf >> ${LOG_FILE} 2>&1
+sed -i 's/chmod=0700/; allow supervisor group\nchown=root:supervisor\nchmod=0770/g' /etc/supervisord.conf >> ${LOG_FILE} 2>&1
 check_cmd_status "edit supervisor config.."
 
 mkdir -p /home/${USERNAME}/supervisord.d >> ${LOG_FILE} 2>&1
@@ -713,12 +715,12 @@ check_cmd_status "add supervisord.d config directory for user.."
 
 cat <<EOF > /home/${USERNAME}/supervisord.d/sample-worker.bak
 [program:domain-name-worker]
-command=php /home/${USERNAME}/public_html/project_folder/artisan queue:work --sleep=3 --tries=3
+command=php /home/${USERNAME}/public_html/${PROJECT_DIRECTORY}/dev/artisan queue:work --sleep=3 --tries=3
 autostart=true
 autorestart=true
 redirect_stderr=true
-stderr_logfile = /home/${USERNAME}/public_html/project_folder/storage/logs/stderr.log
-#stdout_logfile = /home/${USERNAME}/public_html/project_folder/storage/logs/stdout.log
+stderr_logfile = /home/${USERNAME}/public_html/${PROJECT_DIRECTORY}/dev/storage/logs/stderr.log
+#stdout_logfile = /home/${USERNAME}/public_html/${PROJECT_DIRECTORY}/dev/storage/logs/stdout.log
 EOF
 
 chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/supervisord.d >> ${LOG_FILE} 2>&1
@@ -809,20 +811,20 @@ echo -e "    USERNAME: dev_${USERNAME}"
 echo -e "    PASSWORD: ${MYSQL_DEV_PASSWORD}"
 echo -e ""
 echo -e "[phpMyAdmin]"
-echo -e "  URL: https://${DOMAIN_NAME}/phpmyadmin"
+echo -e "  URL: http://${DOMAIN_NAME}/phpmyadmin"
 echo -e "  [BasicAuth]"
 echo -e "    USERNAME: ${USERNAME}"
 echo -e "    PASSWORD: ${PASSWORD}"
 echo -e ""
 echo -e "[Website]"
 echo -e "  [PRODUCTION]"
-echo -e "    URL: https://${DOMAIN_NAME}/"
+echo -e "    URL: http://${DOMAIN_NAME}/"
 if [[ STAGING_DOMAIN_IP == SERVER_IP ]]; then
 echo -e "  [STAGING]"
-echo -e "    URL: https://staging.${DOMAIN_NAME}/"
+echo -e "    URL: http://staging.${DOMAIN_NAME}/"
 fi
 if [[ DEV_DOMAIN_IP == $SERVER_IP ]]; then
 echo -e "  [DEVELOPMENT]"
-echo -e "    URL: https://dev.${DOMAIN_NAME}/"
+echo -e "    URL: http://dev.${DOMAIN_NAME}/"
 fi
 echo -e "${GREEN}====================================================${RESET}"
