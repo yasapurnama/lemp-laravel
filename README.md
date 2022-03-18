@@ -3,9 +3,11 @@
 ![GitHub all releases](https://img.shields.io/github/downloads/yasapurnama/lemp-laravel/total)
 [![GitHub license](https://img.shields.io/github/license/yasapurnama/lemp-laravel)](https://github.com/yasapurnama/lemp-laravel/blob/master/LICENSE)
 
-LEMP Laravel is automation bash script to install LEMP Stack (Linux, Nginx, MySQL and PHP). The script also install essential services that required by Laravel like redis cache and supervisord. Tested on AWS EC2 `Ubuntu 18.04 LTS` and `Ubuntu 20.04 LTS` server.
+LEMP Laravel is automation bash script to install LEMP Stack (Linux, Nginx, MySQL and PHP).
+The script also install essential services that required by Laravel like redis cache and supervisord. 
+Tested on AWS EC2 `Ubuntu 18.04 LTS` and `Ubuntu 20.04 LTS` server.
 
-**New Update: Added LEMP Laravel for Centos server. For Centos script please read [README_CENTOS.md](README_CENTOS.md)**
+**News: LEMP Laravel script for Centos server see [README_CENTOS.md](README_CENTOS.md)**
 
 ![lemp-laravel](https://user-images.githubusercontent.com/12730759/151770303-1ea5e6e9-48e1-4f07-b4ac-ffdd4a1bd588.png)
 
