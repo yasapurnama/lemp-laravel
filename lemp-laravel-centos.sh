@@ -158,7 +158,7 @@ systemctl enable --now supervisord >> ${LOG_FILE} 2>&1
 systemctl enable --now redis >> ${LOG_FILE} 2>&1
 
 
-# Install MySQL
+# Install MariaDB
 echo -e "${GREEN}[*]${RESET} Install & Configure MySQL.."
 
 yum -y install mysql mariadb-server python-mysqldb >> ${LOG_FILE} 2>&1
@@ -700,7 +700,7 @@ usermod -aG supervisor root; usermod -aG supervisor ${USERNAME} >> ${LOG_FILE} 2
 check_cmd_status "add user to supervisor group.."
 
 chown root:supervisor /var/run/supervisor >> ${LOG_FILE} 2>&1
-check_cmd_status "change owner supervisor sock.."
+check_cmd_status "change owner supervisor dir.."
 
 sed -i 's/chmod=0700/; allow supervisor group\nchown=root:supervisor\nchmod=0770/g' /etc/supervisord.conf >> ${LOG_FILE} 2>&1
 check_cmd_status "edit supervisor config.."
