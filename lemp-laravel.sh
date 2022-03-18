@@ -49,19 +49,9 @@ FPM_MAX_REQUESTS="500"
 #redis
 REDIS_MAX_MEMORY="128mb"
 
-MYSQL_PROD_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-16})
-MYSQL_DEV_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-16})
-MYSQL_STAGING_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-16})
-SERVER_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
-PHP_FPM_POOL_DIR="/etc/php/${PHP_VERSION}/fpm/pool.d"
-PHP_INI="/etc/php/${PHP_VERSION}/fpm/php.ini"
-NGINX_SITEAVAILABLE_DIR="/etc/nginx/sites-available"
-NGINX_SITEENABLE_DIR="/etc/nginx/sites-enabled"
-LOG_FILE="install_log.txt"
-
 
 # Setup Varibales
-while [[ $USERNAME == "" ||  $PASSWORD == "" || $MYSQL_ROOT_PASSWORD == ""  || $PROJECT_DIRECTORY == "" ]]
+while [[ $USERNAME == "" || ${#USERNAME} -gt 8 ||  $PASSWORD == "" || $MYSQL_ROOT_PASSWORD == ""  || $PROJECT_DIRECTORY == "" ]]
 do
     clear
     which curl > /dev/null 2>&1 && curl https://raw.githubusercontent.com/yasapurnama/lemp-laravel/master/banner.txt
@@ -74,9 +64,10 @@ do
     echo -e "DOMAIN_NAME=${DOMAIN_NAME}"
     echo -e "DOMAIN_EMAIL=${DOMAIN_EMAIL}"
     echo ""
+    echo -e "${GREEN}[*]${RESET} Setup Variables:"
 
-    if [[ $USERNAME == "" ]]; then
-        echo -e "${GREEN}[*]${RESET} Setup Varibales:"
+    if [[ $USERNAME == "" || ${#USERNAME} -gt 8 ]]; then
+        [[ ${#USERNAME} -gt 8 ]] && echo -e "${RED}Username minimum 8 character${RESET}\n"
         echo -n "USERNAME:"
         read USERNAME
     fi
@@ -107,6 +98,22 @@ do
     fi
 
 done
+
+
+# Check if dig available
+which dig > /dev/null 2>&1 || apt -y install dnsutils > /dev/null 2>&1
+
+# Default Variables
+MYSQL_PROD_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-16})
+MYSQL_DEV_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-16})
+MYSQL_STAGING_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-16})
+SERVER_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
+PHP_FPM_POOL_DIR="/etc/php/${PHP_VERSION}/fpm/pool.d"
+PHP_INI="/etc/php/${PHP_VERSION}/fpm/php.ini"
+NGINX_SITEAVAILABLE_DIR="/etc/nginx/sites-available"
+NGINX_SITEENABLE_DIR="/etc/nginx/sites-enabled"
+LOG_FILE="install_log.txt"
+
 
 check_cmd_status() {
     if [[ "$?" -ne 0 ]]; then
@@ -319,19 +326,23 @@ DEV_DOMAIN_IP=$(dig +short dev.${DOMAIN_NAME} A)
 STAGING_DOMAIN_IP=$(dig +short staging.${DOMAIN_NAME} A)
 
 CERT_COMMENT="# "
+CERT_NO_COMMENT=""
 REQUEST_DOMAINS=""
 
 if [[ $PROD_DOMAIN_IP == $SERVER_IP ]]; then
 
   REQUEST_DOMAINS="${DOMAIN_NAME}"
-  [[ DEV_DOMAIN_IP == $SERVER_IP ]] && REQUEST_DOMAINS="${REQUEST_DOMAINS},dev.${DOMAIN_NAME}"
-  [[ STAGING_DOMAIN_IP == $SERVER_IP ]] && REQUEST_DOMAINS="${REQUEST_DOMAINS},staging.${DOMAIN_NAME}"
+  [[ $DEV_DOMAIN_IP == $SERVER_IP ]] && REQUEST_DOMAINS="${REQUEST_DOMAINS},dev.${DOMAIN_NAME}"
+  [[ $STAGING_DOMAIN_IP == $SERVER_IP ]] && REQUEST_DOMAINS="${REQUEST_DOMAINS},staging.${DOMAIN_NAME}"
 
   certbot certonly --nginx --non-interactive --agree-tos --domains ${REQUEST_DOMAINS} --email ${DOMAIN_EMAIL} >> ${LOG_FILE} 2>&1
 
   certbot renew --dry-run >> ${LOG_FILE} 2>&1
 
-  [[ -f /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem ]] && CERT_COMMENT="";
+  if [[ -f /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem ]]; then
+    CERT_COMMENT=""
+    CERT_NO_COMMENT="# "
+  fi
 
 fi
 
@@ -347,7 +358,7 @@ check_cmd_status "uncomment server_tokens off.."
 
 cat <<EOF > ${NGINX_SITEAVAILABLE_DIR}/${DOMAIN_NAME}.conf
 server {
-        listen 80;
+        ${CERT_NO_COMMENT}listen 80;
         ${CERT_COMMENT}listen 443 ssl http2;
         server_name ${DOMAIN_NAME};
 
@@ -397,9 +408,9 @@ server {
         # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
         location ~ \.php\$ {
                 include snippets/fastcgi-php.conf;
-        #       # With php7.0-cgi alone:
+        #       # With php-cgi alone:
         #       fastcgi_pass 127.0.0.1:9000;
-        #       # With php7.0-fpm:
+        #       # With php-fpm:
                 fastcgi_pass unix:${PHP_FPM_SOCK};
         }
 
@@ -436,7 +447,7 @@ EOF
 
 cat <<EOF > ${NGINX_SITEAVAILABLE_DIR}/dev.${DOMAIN_NAME}.conf
 server {
-        listen 80;
+        ${CERT_NO_COMMENT}listen 80;
         ${CERT_COMMENT}listen 443 ssl http2;
         server_name dev.${DOMAIN_NAME};
 
@@ -486,9 +497,9 @@ server {
         # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
         location ~ \.php\$ {
                 include snippets/fastcgi-php.conf;
-        #       # With php7.0-cgi alone:
+        #       # With php-cgi alone:
         #       fastcgi_pass 127.0.0.1:9000;
-        #       # With php7.0-fpm:
+        #       # With php-fpm:
                 fastcgi_pass unix:${PHP_FPM_SOCK};
         }
 
@@ -515,7 +526,7 @@ EOF
 
 cat <<EOF > ${NGINX_SITEAVAILABLE_DIR}/staging.${DOMAIN_NAME}.conf
 server {
-        listen 80;
+        ${CERT_NO_COMMENT}listen 80;
         ${CERT_COMMENT}listen 443 ssl http2;
         server_name staging.${DOMAIN_NAME};
 
@@ -565,9 +576,9 @@ server {
         # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
         location ~ \.php\$ {
                 include snippets/fastcgi-php.conf;
-        #       # With php7.0-cgi alone:
+        #       # With php-cgi alone:
         #       fastcgi_pass 127.0.0.1:9000;
-        #       # With php7.0-fpm:
+        #       # With php-fpm:
                 fastcgi_pass unix:${PHP_FPM_SOCK};
         }
 
@@ -656,12 +667,12 @@ check_cmd_status "add supervisord.d config directory for user.."
 
 cat <<EOF > /home/${USERNAME}/supervisord.d/sample-worker.bak
 [program:domain-name-worker]
-command=php /home/${USERNAME}/public_html/project_folder/artisan queue:work --sleep=3 --tries=3
+command=php /home/${USERNAME}/public_html/${PROJECT_DIRECTORY}/dev/artisan queue:work --sleep=3 --tries=3
 autostart=true
 autorestart=true
 redirect_stderr=true
-stderr_logfile = /home/${USERNAME}/public_html/project_folder/storage/logs/stderr.log
-#stdout_logfile = /home/${USERNAME}/public_html/project_folder/storage/logs/stdout.log
+stderr_logfile = /home/${USERNAME}/public_html/${PROJECT_DIRECTORY}/dev/storage/logs/stderr.log
+#stdout_logfile = /home/${USERNAME}/public_html/${PROJECT_DIRECTORY}/dev/storage/logs/stdout.log
 EOF
 
 chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/supervisord.d >> ${LOG_FILE} 2>&1
@@ -750,20 +761,20 @@ echo -e "    USERNAME: dev_${USERNAME}"
 echo -e "    PASSWORD: ${MYSQL_DEV_PASSWORD}"
 echo -e ""
 echo -e "[phpMyAdmin]"
-echo -e "  URL: https://${DOMAIN_NAME}/phpmyadmin"
+echo -e "  URL: http://${DOMAIN_NAME}/phpmyadmin"
 echo -e "  [BasicAuth]"
 echo -e "    USERNAME: ${USERNAME}"
 echo -e "    PASSWORD: ${PASSWORD}"
 echo -e ""
 echo -e "[Website]"
 echo -e "  [PRODUCTION]"
-echo -e "    URL: https://${DOMAIN_NAME}/"
-if [[ STAGING_DOMAIN_IP == SERVER_IP ]]; then
+echo -e "    URL: http://${DOMAIN_NAME}/"
+if [[ $STAGING_DOMAIN_IP == $SERVER_IP ]]; then
 echo -e "  [STAGING]"
-echo -e "    URL: https://staging.${DOMAIN_NAME}/"
+echo -e "    URL: http://staging.${DOMAIN_NAME}/"
 fi
-if [[ DEV_DOMAIN_IP == $SERVER_IP ]]; then
+if [[ $DEV_DOMAIN_IP == $SERVER_IP ]]; then
 echo -e "  [DEVELOPMENT]"
-echo -e "    URL: https://dev.${DOMAIN_NAME}/"
+echo -e "    URL: http://dev.${DOMAIN_NAME}/"
 fi
 echo -e "${GREEN}====================================================${RESET}"
