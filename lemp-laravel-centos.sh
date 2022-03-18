@@ -10,8 +10,8 @@ RESET="\033[00m"     # Normal
 
 # Check if running as root
 if [[ "${EUID}" -ne 0 ]]; then
-    echo -e "${RED}[!]${RESET} This script must be ${RED}run as root${RESET}" 1>&2
-    exit 1
+  echo -e "${RED}[!]${RESET} This script must be ${RED}run as root${RESET}" 1>&2
+  exit 1
 fi
 
 # Variables
@@ -22,8 +22,11 @@ PROJECT_DIRECTORY=""
 DOMAIN_NAME=""
 DOMAIN_EMAIL=""
 
+# Centos Version
+CENTOS_VERSION="7"
+
 #Advance Configuration
-PHP_VERSION="7.4" # change base on your need, see LTS support https://www.php.net/supported-versions.php
+PHP_VERSION="74" # change base on your need, see LTS support https://www.php.net/supported-versions.php
 PHPMYADMIN_VERSION="5.1.1" # check latest version https://www.phpmyadmin.net/downloads/
 NVM_VERSION="v0.39.0" # check latest version https://github.com/nvm-sh/nvm/releases
 NODE_VERSION="v16.13.1" # change base on your need, see LTS support https://nodejs.org/en/about/releases/
@@ -53,65 +56,65 @@ REDIS_MAX_MEMORY="128mb"
 # Setup Varibales
 while [[ $USERNAME == "" || ${#USERNAME} -gt 8 ||  $PASSWORD == "" || $MYSQL_ROOT_PASSWORD == ""  || $PROJECT_DIRECTORY == "" ]]
 do
-    clear
-    which curl > /dev/null 2>&1 && curl https://raw.githubusercontent.com/yasapurnama/lemp-laravel/master/banner.txt
-    echo -e "${GREEN}Wellcome to LEMP stack installation for Laravel application${RESET}\n"
-    echo -e "You need to fillup the following variables:"
-    echo -e "USERNAME=${USERNAME}"
-    [[ $PASSWORD == "" ]] && echo -e "PASSWORD=" || echo -e "PASSWORD=********"
-    [[ $MYSQL_ROOT_PASSWORD == "" ]] && echo -e "MYSQL_ROOT_PASSWORD=" || echo -e "MYSQL_ROOT_PASSWORD=********"
-    echo -e "PROJECT_DIRECTORY=${PROJECT_DIRECTORY}"
-    echo -e "DOMAIN_NAME=${DOMAIN_NAME}"
-    echo -e "DOMAIN_EMAIL=${DOMAIN_EMAIL}"
-    echo ""
-    echo -e "${GREEN}[*]${RESET} Setup Variables:"
+  clear
+  which curl > /dev/null 2>&1 && curl https://raw.githubusercontent.com/yasapurnama/lemp-laravel/master/banner.txt
+  echo -e "${GREEN}Wellcome to LEMP stack installation for Laravel application${RESET}\n"
+  echo -e "You need to fillup the following variables:"
+  echo -e "USERNAME=${USERNAME}"
+  [[ $PASSWORD == "" ]] && echo -e "PASSWORD=" || echo -e "PASSWORD=********"
+  [[ $MYSQL_ROOT_PASSWORD == "" ]] && echo -e "MYSQL_ROOT_PASSWORD=" || echo -e "MYSQL_ROOT_PASSWORD=********"
+  echo -e "PROJECT_DIRECTORY=${PROJECT_DIRECTORY}"
+  echo -e "DOMAIN_NAME=${DOMAIN_NAME}"
+  echo -e "DOMAIN_EMAIL=${DOMAIN_EMAIL}"
+  echo ""
+  echo -e "${GREEN}[*]${RESET} Setup Variables:"
 
-    if [[ $USERNAME == "" || ${#USERNAME} -gt 8 ]]; then
-        [[ ${#USERNAME} -gt 8 ]] && echo -e "${RED}Username minimum 8 character${RESET}\n"
-        echo -n "USERNAME:"
-        read USERNAME
-    fi
+  if [[ $USERNAME == "" || ${#USERNAME} -gt 8 ]]; then
+    [[ ${#USERNAME} -gt 8 ]] && echo -e "${RED}Username minimum 8 character${RESET}\n"
+    echo -n "USERNAME:"
+    read USERNAME
+  fi
 
-    if [[ $PASSWORD == "" ]]; then
-        echo -n "PASSWORD:"
-        read -s PASSWORD
-    fi
+  if [[ $PASSWORD == "" ]]; then
+    echo -n "PASSWORD:"
+    read -s PASSWORD
+  fi
 
-    if [[ $MYSQL_ROOT_PASSWORD == "" ]]; then
-        echo -en "\nMYSQL_ROOT_PASSWORD:"
-        read -s MYSQL_ROOT_PASSWORD
-    fi
+  if [[ $MYSQL_ROOT_PASSWORD == "" ]]; then
+    echo -en "\nMYSQL_ROOT_PASSWORD:"
+    read -s MYSQL_ROOT_PASSWORD
+  fi
 
-    if [[ $PROJECT_DIRECTORY == "" ]]; then
-        echo -en "\nPROJECT_DIRECTORY:"
-        read PROJECT_DIRECTORY
-    fi
+  if [[ $PROJECT_DIRECTORY == "" ]]; then
+    echo -en "\nPROJECT_DIRECTORY:"
+    read PROJECT_DIRECTORY
+  fi
 
-    if [[ $DOMAIN_NAME == "" ]]; then
-        echo -n "DOMAIN_NAME:"
-        read DOMAIN_NAME
-    fi
+  if [[ $DOMAIN_NAME == "" ]]; then
+    echo -n "DOMAIN_NAME:"
+    read DOMAIN_NAME
+  fi
 
-    if [[ $DOMAIN_EMAIL == "" ]]; then
-        echo -n "DOMAIN_EMAIL:"
-        read DOMAIN_EMAIL
-    fi
+  if [[ $DOMAIN_EMAIL == "" ]]; then
+    echo -n "DOMAIN_EMAIL:"
+    read DOMAIN_EMAIL
+  fi
 
 done
 
 
 # Check if dig available
-which dig > /dev/null 2>&1 || apt -y install dnsutils > /dev/null 2>&1
+which dig > /dev/null 2>&1 || yum -y install bind-utils > /dev/null 2>&1
 
 # Default Variables
 MYSQL_PROD_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-16})
 MYSQL_DEV_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-16})
 MYSQL_STAGING_PASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-16})
 SERVER_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
-PHP_FPM_POOL_DIR="/etc/php/${PHP_VERSION}/fpm/pool.d"
-PHP_INI="/etc/php/${PHP_VERSION}/fpm/php.ini"
-NGINX_SITEAVAILABLE_DIR="/etc/nginx/sites-available"
-NGINX_SITEENABLE_DIR="/etc/nginx/sites-enabled"
+# SERVER_IP="127.0.0.1" #DUMMY
+PHP_FPM_POOL_DIR="/etc/php-fpm.d"
+PHP_INI="/etc/php.ini"
+NGINX_SITECONFIG="/etc/nginx/conf.d"
 LOG_FILE="install_log.txt"
 
 
@@ -135,52 +138,52 @@ sleep 3s
 # Keep operating system up to date
 echo -e "${GREEN}[*]${RESET} Update system.."
 
-apt -y update &> ${LOG_FILE}
+yum -y update &> ${LOG_FILE}
 check_cmd_status "update system.."
 
-apt -y upgrade >> ${LOG_FILE} 2>&1
-check_cmd_status "upgrade system.."
+# Install EPEL Software Repository
+yum -y install epel-release >> ${LOG_FILE} 2>&1
+check_cmd_status "install epel release.."
 
 
 # Install Nginx, Net Tools, Git, Zip
-echo -e "${GREEN}[*]${RESET} Install nginx wget curl net-tools git unzip htop nano apache2-utils supervisor cron redis-server software-properties-common nodejs npm build-essential.."
+echo -e "${GREEN}[*]${RESET} Install nginx wget curl net-tools git unzip htop nano httpd-tools supervisor cronie redis nodejs npm gcc gcc-c++ kernel-devel make.."
 
-apt -y install nginx wget curl net-tools git unzip htop nano apache2-utils supervisor cron redis-server software-properties-common nodejs npm build-essential >> ${LOG_FILE} 2>&1
-check_cmd_status "install nginx wget curl net-tools git unzip htop nano apache2-utils supervisor cron redis-server software-properties-common nodejs npm build-essential.."
+yum -y install --skip-broken nginx wget curl net-tools git unzip htop nano httpd-tools supervisor cronie redis nodejs npm gcc gcc-c++ kernel-devel make >> ${LOG_FILE} 2>&1
+check_cmd_status "install nginx wget curl net-tools git unzip htop nano httpd-tools supervisor cronie redis nodejs npm gcc gcc-c++ kernel-devel make.."
+
+
+systemctl enable --now nginx >> ${LOG_FILE} 2>&1
+systemctl enable --now supervisord >> ${LOG_FILE} 2>&1
+systemctl enable --now redis >> ${LOG_FILE} 2>&1
 
 
 # Install MySQL
 echo -e "${GREEN}[*]${RESET} Install & Configure MySQL.."
 
-apt -y install debconf-utils >> ${LOG_FILE} 2>&1
-check_cmd_status "install debconf-utils.."
+yum -y install mysql mariadb-server python-mysqldb >> ${LOG_FILE} 2>&1
+check_cmd_status "install mariadb.."
 
-debconf-set-selections <<< "mysql-server mysql-server/root_password password ${MYSQL_ROOT_PASSWORD}" >> ${LOG_FILE} 2>&1
-check_cmd_status "debconf-set password.."
+systemctl enable --now mariadb >> ${LOG_FILE} 2>&1
 
-debconf-set-selections <<< "mysql-server mysql-server/root_password_again password ${MYSQL_ROOT_PASSWORD}" >> ${LOG_FILE} 2>&1
-check_cmd_status "debconf-set password_again.."
+SQL_QUERY="use mysql;
+UPDATE user SET password=PASSWORD('${MYSQL_ROOT_PASSWORD}') WHERE User='root' AND Host = 'localhost';
+FLUSH PRIVILEGES;"
 
-apt -y install mysql-server >> ${LOG_FILE} 2>&1
-check_cmd_status "install mysql-server.."
+mysql -uroot -e "${SQL_QUERY}" >> ${LOG_FILE} 2>&1
 
 
 # Install PHP
 echo -e "${GREEN}[*]${RESET} Install PHP.."
 
-add-apt-repository -y universe >> ${LOG_FILE} 2>&1
-check_cmd_status "add repository universe.."
+rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-${CENTOS_VERSION}.rpm >> ${LOG_FILE} 2>&1
 
-add-apt-repository -y ppa:ondrej/php >> ${LOG_FILE} 2>&1
-check_cmd_status "add repository ppa:ondrej/php.."
+yum --enablerepo=remi,remi-php${PHP_VERSION} -y install php php-{common,fpm,mysql,mbstring,xml,zip,soap,gd,curl,imagick,cli,bcmath,redis} >> ${LOG_FILE} 2>&1
+check_cmd_status "enable remi repository & install php.."
 
-apt -y -qq update >> ${LOG_FILE} 2>&1
-check_cmd_status "update repository.."
+# update-alternatives --set php $(which php${PHP_VERSION})
 
-apt install -y php${PHP_VERSION}-{fpm,mysql,mbstring,xml,zip,soap,gd,curl,imagick,cli,bcmath,redis} >> ${LOG_FILE} 2>&1
-check_cmd_status "install php.."
-
-update-alternatives --set php $(which php${PHP_VERSION})
+systemctl enable --now php-fpm >> ${LOG_FILE} 2>&1
 
 
 # Configure PHP
@@ -216,7 +219,7 @@ check_cmd_status "remove file composer.."
 # Start User Based Config
 echo -e "${GREEN}[*]${RESET} Add new user.."
 
-adduser ${USERNAME} --disabled-login --gecos "LEMP User"  >> ${LOG_FILE} 2>&1
+adduser ${USERNAME} -c "LEMP User"  >> ${LOG_FILE} 2>&1
 echo "${USERNAME}:${PASSWORD}" | chpasswd >> ${LOG_FILE} 2>&1
 check_cmd_status "add new user.."
 
@@ -225,7 +228,7 @@ echo -e "${GREEN}[*]${RESET} Allow user login with password.."
 sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/g" /etc/ssh/sshd_config >> ${LOG_FILE} 2>&1
 check_cmd_status "allow user login via password.."
 
-systemctl restart ssh >> ${LOG_FILE} 2>&1
+systemctl restart sshd >> ${LOG_FILE} 2>&1
 check_cmd_status "restart ssh service.."
 
 
@@ -243,7 +246,7 @@ check_cmd_status "copy phpMyAdmin.."
 rm -rf phpMyAdmin-${PHPMYADMIN_VERSION}-english >> ${LOG_FILE} 2>&1
 check_cmd_status "remove source phpMyAdmin.."
 
-sed -e "s|cfg\['blowfish_secret'\] = ''|cfg['blowfish_secret'] = '$(openssl rand -base64 32)'|" /home/${USERNAME}/phpmyadmin/config.sample.inc.php > /home/${USERNAME}/phpmyadmin/config.inc.php >> ${LOG_FILE} 2>&1
+sed -e "s|cfg\['blowfish_secret'\] = ''|cfg['blowfish_secret'] = '$(openssl rand -base64 32)'|" /home/${USERNAME}/phpmyadmin/config.sample.inc.php > /home/${USERNAME}/phpmyadmin/config.inc.php
 check_cmd_status "Set blowfish secret phpMyAdmin.."
 
 mkdir -p /home/${USERNAME}/phpmyadmin/tmp; chmod 777 /home/${USERNAME}/phpmyadmin/tmp >> ${LOG_FILE} 2>&1
@@ -281,7 +284,7 @@ echo -e "${GREEN}[*]${RESET} Configure php-fpm.."
 [[ -f ${PHP_FPM_POOL_DIR}/www.conf ]] && mv ${PHP_FPM_POOL_DIR}/www.conf{,.bckp} >> ${LOG_FILE} 2>&1
 
 # Create new php-fpm config (project specify)
-PHP_FPM_SOCK="/var/run/php${PHP_VERSION}-fpm-${USERNAME}.sock"
+PHP_FPM_SOCK="/var/run/php-fpm/php${PHP_VERSION}-fpm-${USERNAME}.sock"
 
 cat <<EOF > ${PHP_FPM_POOL_DIR}/${USERNAME}.conf
 [${USERNAME}]
@@ -299,18 +302,31 @@ pm.max_requests = ${FPM_MAX_REQUESTS}
 EOF
 check_cmd_status "create new php-fpm config.."
 
-systemctl restart php${PHP_VERSION}-fpm >> ${LOG_FILE} 2>&1
+systemctl restart php-fpm >> ${LOG_FILE} 2>&1
 check_cmd_status "restart php-fpm service.."
 
 
 # Install Certbot via Snap
 echo -e "${GREEN}[*]${RESET} Install Certbot.."
 
-snap install core >> ${LOG_FILE} 2>&1
+yum -y install snapd >> ${LOG_FILE} 2>&1
 check_cmd_status "install snap.."
+
+systemctl enable --now snapd >> ${LOG_FILE} 2>&1
+
+sleep 10
+
+snap install core >> ${LOG_FILE} 2>&1
+check_cmd_status "install snap core.."
+
+systemctl restart snapd >> ${LOG_FILE} 2>&1
+
+sleep 5
 
 snap refresh core >> ${LOG_FILE} 2>&1
 check_cmd_status "refresh snap.."
+
+ln -s /var/lib/snapd/snap /snap >> ${LOG_FILE} 2>&1
 
 snap install --classic certbot >> ${LOG_FILE} 2>&1
 check_cmd_status "install certbot.."
@@ -350,13 +366,15 @@ fi
 # Configure nginx
 echo -e "${GREEN}[*]${RESET} Configure nginx.."
 
-sed -i "s/user www-data;/user ${USERNAME};/g" /etc/nginx/nginx.conf >> ${LOG_FILE} 2>&1
+sed -i "s/user nginx;/user ${USERNAME};/g" /etc/nginx/nginx.conf >> ${LOG_FILE} 2>&1
 check_cmd_status "set default nginx user.."
 
-sed -i 's/# server_tokens off;/server_tokens off;/g' /etc/nginx/nginx.conf >> ${LOG_FILE} 2>&1
-check_cmd_status "uncomment server_tokens off.."
+if ! grep -q "server_tokens" /etc/nginx/nginx.conf; then
+sed -i 's/keepalive_timeout   65;/keepalive_timeout   65;\n    server_tokens       off;/g' /etc/nginx/nginx.conf >> ${LOG_FILE} 2>&1
+check_cmd_status "add server_tokens off.."
+fi
 
-cat <<EOF > ${NGINX_SITEAVAILABLE_DIR}/${DOMAIN_NAME}.conf
+cat <<EOF > ${NGINX_SITECONFIG}/${DOMAIN_NAME}.conf
 server {
         ${CERT_NO_COMMENT}listen 80;
         ${CERT_COMMENT}listen 443 ssl http2;
@@ -445,7 +463,7 @@ server {
 }
 EOF
 
-cat <<EOF > ${NGINX_SITEAVAILABLE_DIR}/dev.${DOMAIN_NAME}.conf
+cat <<EOF > ${NGINX_SITECONFIG}/dev.${DOMAIN_NAME}.conf
 server {
         ${CERT_NO_COMMENT}listen 80;
         ${CERT_COMMENT}listen 443 ssl http2;
@@ -524,7 +542,7 @@ ${CERT_COMMENT}        }
 ${CERT_COMMENT}}
 EOF
 
-cat <<EOF > ${NGINX_SITEAVAILABLE_DIR}/staging.${DOMAIN_NAME}.conf
+cat <<EOF > ${NGINX_SITECONFIG}/staging.${DOMAIN_NAME}.conf
 server {
         ${CERT_NO_COMMENT}listen 80;
         ${CERT_COMMENT}listen 443 ssl http2;
@@ -603,14 +621,24 @@ ${CERT_COMMENT}        }
 ${CERT_COMMENT}}
 EOF
 
-ln -sf ${NGINX_SITEAVAILABLE_DIR}/${DOMAIN_NAME}.conf ${NGINX_SITEENABLE_DIR}/${DOMAIN_NAME}.conf >> ${LOG_FILE} 2>&1
-check_cmd_status "link enable nginx config prod.."
+# Create snippet fastcgi php
+mkdir -p /etc/nginx/snippets >> ${LOG_FILE} 2>&1
 
-ln -sf ${NGINX_SITEAVAILABLE_DIR}/dev.${DOMAIN_NAME}.conf ${NGINX_SITEENABLE_DIR}/dev.${DOMAIN_NAME}.conf >> ${LOG_FILE} 2>&1
-check_cmd_status "link enable nginx config dev.."
+cat <<EOF > /etc/nginx/snippets/fastcgi-php.conf
+# regex to split \$uri to \$fastcgi_script_name and \$fastcgi_path
+fastcgi_split_path_info ^(.+?\.php)(/.*)\$;
 
-ln -sf ${NGINX_SITEAVAILABLE_DIR}/staging.${DOMAIN_NAME}.conf ${NGINX_SITEENABLE_DIR}/staging.${DOMAIN_NAME}.conf >> ${LOG_FILE} 2>&1
-check_cmd_status "link enable nginx config staging.."
+# Check that the PHP script exists before passing it
+try_files \$fastcgi_script_name =404;
+
+# Bypass the fact that try_files resets \$fastcgi_path_info
+# see: http://trac.nginx.org/nginx/ticket/321
+set \$path_info \$fastcgi_path_info;
+fastcgi_param PATH_INFO \$path_info;
+
+fastcgi_index index.php;
+include fastcgi.conf;
+EOF
 
 nginx -t >> ${LOG_FILE} 2>&1
 check_cmd_status "test nginx config.."
@@ -619,32 +647,47 @@ systemctl reload nginx >> ${LOG_FILE} 2>&1
 check_cmd_status "reload nginx service.."
 
 
+# Set Selinux Boolean Value (error in some cases)
+# setsebool -P httpd_enable_homedirs on
+# setsebool -P httpd_read_user_content on
+
+# Disable Selinux (Very Tight)
+setenforce 0
+
+
 # Add MySQL user
 echo -e "${GREEN}[*]${RESET} Create MySQL user and database.."
 
-SQL_QUERY="CREATE USER IF NOT EXISTS 'prod_${USERNAME}'@'localhost' IDENTIFIED BY '${MYSQL_PROD_PASSWORD}';
+SQL_QUERY="use mysql;
+CREATE USER 'prod_${USERNAME}'@'localhost' IDENTIFIED BY '${MYSQL_PROD_PASSWORD}';
+FLUSH PRIVILEGES;"
+
+mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "${SQL_QUERY}" >> ${LOG_FILE} 2>&1
+
+SQL_QUERY="use mysql;
+CREATE USER 'dev_${USERNAME}'@'localhost' IDENTIFIED BY '${MYSQL_DEV_PASSWORD}';
+FLUSH PRIVILEGES;"
+
+mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "${SQL_QUERY}" >> ${LOG_FILE} 2>&1
+
+SQL_QUERY="use mysql;
+CREATE USER 'staging_${USERNAME}'@'localhost' IDENTIFIED BY '${MYSQL_STAGING_PASSWORD}';
+FLUSH PRIVILEGES;"
+
+mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "${SQL_QUERY}" >> ${LOG_FILE} 2>&1
+
+
+SQL_QUERY="use mysql;
 CREATE DATABASE IF NOT EXISTS prod_${USERNAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 GRANT ALL ON prod_${USERNAME}.* TO 'prod_${USERNAME}'@'localhost';
-FLUSH PRIVILEGES;"
-
-mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "${SQL_QUERY}" >> ${LOG_FILE} 2>&1
-check_cmd_status "create user and database production.."
-
-SQL_QUERY="CREATE USER IF NOT EXISTS 'dev_${USERNAME}'@'localhost' IDENTIFIED BY '${MYSQL_DEV_PASSWORD}';
 CREATE DATABASE IF NOT EXISTS dev_${USERNAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 GRANT ALL ON dev_${USERNAME}.* TO 'dev_${USERNAME}'@'localhost';
-FLUSH PRIVILEGES;"
-
-mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "${SQL_QUERY}" >> ${LOG_FILE} 2>&1
-check_cmd_status "create user and database development.."
-
-SQL_QUERY="CREATE USER IF NOT EXISTS 'staging_${USERNAME}'@'localhost' IDENTIFIED BY '${MYSQL_STAGING_PASSWORD}';
 CREATE DATABASE IF NOT EXISTS staging_${USERNAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 GRANT ALL ON staging_${USERNAME}.* TO 'staging_${USERNAME}'@'localhost';
 FLUSH PRIVILEGES;"
 
 mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "${SQL_QUERY}" >> ${LOG_FILE} 2>&1
-check_cmd_status "create user and database staging.."
+# check_cmd_status "create databse for prod, dev & staging.." #DEMO
 
 
 # Config supervisord
@@ -656,10 +699,10 @@ check_cmd_status "add group supervisor.."
 usermod -aG supervisor root; usermod -aG supervisor ${USERNAME} >> ${LOG_FILE} 2>&1
 check_cmd_status "add user to supervisor group.."
 
-chown root:supervisor /var/run/supervisor.sock >> ${LOG_FILE} 2>&1
+chown root:supervisor /var/run/supervisor >> ${LOG_FILE} 2>&1
 check_cmd_status "change owner supervisor sock.."
 
-sed -i 's/chmod=0700/chown=root:supervisor\nchmod=0770/g' /etc/supervisor/supervisord.conf >> ${LOG_FILE} 2>&1
+sed -i 's/chmod=0700/; allow supervisor group\nchown=root:supervisor\nchmod=0770/g' /etc/supervisord.conf >> ${LOG_FILE} 2>&1
 check_cmd_status "edit supervisor config.."
 
 mkdir -p /home/${USERNAME}/supervisord.d >> ${LOG_FILE} 2>&1
@@ -678,10 +721,10 @@ EOF
 chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/supervisord.d >> ${LOG_FILE} 2>&1
 check_cmd_status "change owner to user.."
 
-sed -i 's#^files = /etc/supervisor/conf\.d/\*\.conf$#files = /etc/supervisor/conf\.d/\*\.conf /home/'"${USERNAME}"'/supervisord\.d/\*\.conf#g' /etc/supervisor/supervisord.conf >> ${LOG_FILE} 2>&1
+sed -i 's#^files = supervisord\.d/\*\.ini$#files = supervisord\.d/\*\.ini /home/'"${USERNAME}"'/supervisord\.d/\*\.conf#g' /etc/supervisord.conf >> ${LOG_FILE} 2>&1
 check_cmd_status "include user supervisord.d config.."
 
-systemctl restart supervisor >> ${LOG_FILE} 2>&1
+systemctl restart supervisord >> ${LOG_FILE} 2>&1
 check_cmd_status "restart supervisor.."
 
 
@@ -719,13 +762,13 @@ fi
 # Config redist
 echo -e "${GREEN}[*]${RESET} Configure redis cache.."
 
-sed -i 's/# maxmemory <bytes>/maxmemory '"${REDIS_MAX_MEMORY}"'/g' /etc/redis/redis.conf >> ${LOG_FILE} 2>&1
+sed -i 's/# maxmemory <bytes>/maxmemory '"${REDIS_MAX_MEMORY}"'/g' /etc/redis.conf >> ${LOG_FILE} 2>&1
 check_cmd_status "set redis maxmemory.."
 
-sed -i 's/# maxmemory-policy noeviction/maxmemory-policy allkeys-lru/g' /etc/redis/redis.conf >> ${LOG_FILE} 2>&1
+sed -i 's/# maxmemory-policy noeviction/maxmemory-policy allkeys-lru/g' /etc/redis.conf >> ${LOG_FILE} 2>&1
 check_cmd_status "set redis maxmemory-policy.."
 
-systemctl restart redis-server >> ${LOG_FILE} 2>&1
+systemctl restart redis >> ${LOG_FILE} 2>&1
 check_cmd_status "restart redis service.."
 
 

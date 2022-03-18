@@ -13,9 +13,9 @@ Login as root
   $ sudo su -
 ```
 
-Install screen
+Install essential tools
 ```bash
-  $ apt-get install screen
+  $ apt-get install screen wget curl vim
 ```
 
 Create screen session
