@@ -148,8 +148,13 @@ check_cmd_status "install epel release.."
 # Install Nginx, Net Tools, Git, Zip
 echo -e "${GREEN}[*]${RESET} Install nginx wget curl net-tools git unzip htop nano httpd-tools supervisor cronie redis nodejs npm gcc gcc-c++ kernel-devel make.."
 
-yum -y install nginx wget curl net-tools git unzip htop nano httpd-tools supervisor cronie redis nodejs npm gcc gcc-c++ kernel-devel make >> ${LOG_FILE} 2>&1
+yum -y install --skip-broken nginx wget curl net-tools git unzip htop nano httpd-tools supervisor cronie redis nodejs npm gcc gcc-c++ kernel-devel make >> ${LOG_FILE} 2>&1
 check_cmd_status "install nginx wget curl net-tools git unzip htop nano httpd-tools supervisor cronie redis nodejs npm gcc gcc-c++ kernel-devel make.."
+
+
+systemctl enable --now nginx >> ${LOG_FILE} 2>&1
+systemctl enable --now supervisord >> ${LOG_FILE} 2>&1
+systemctl enable --now redis >> ${LOG_FILE} 2>&1
 
 
 # Install MySQL
@@ -176,6 +181,8 @@ yum --enablerepo=remi,remi-php${PHP_VERSION} -y install php php-{common,fpm,mysq
 check_cmd_status "enable remi repository & install php.."
 
 # update-alternatives --set php $(which php${PHP_VERSION})
+
+systemctl enable --now php-fpm >> ${LOG_FILE} 2>&1
 
 
 # Configure PHP
@@ -272,8 +279,6 @@ check_cmd_status "chown user dir.."
 # Configure php-fpm for user
 echo -e "${GREEN}[*]${RESET} Configure php-fpm.."
 
-systemctl enable --now php-fpm >> ${LOG_FILE} 2>&1
-
 # Backup default php-fpm config
 [[ -f ${PHP_FPM_POOL_DIR}/www.conf ]] && mv ${PHP_FPM_POOL_DIR}/www.conf{,.bckp} >> ${LOG_FILE} 2>&1
 
@@ -336,6 +341,7 @@ DEV_DOMAIN_IP=$(dig +short dev.${DOMAIN_NAME} A)
 STAGING_DOMAIN_IP=$(dig +short staging.${DOMAIN_NAME} A)
 
 CERT_COMMENT="# "
+CERT_NO_COMMENT=""
 REQUEST_DOMAINS=""
 
 if [[ $PROD_DOMAIN_IP == $SERVER_IP ]]; then
@@ -348,15 +354,16 @@ if [[ $PROD_DOMAIN_IP == $SERVER_IP ]]; then
 
   certbot renew --dry-run >> ${LOG_FILE} 2>&1
 
-  [[ -f /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem ]] && CERT_COMMENT="";
+  if [[ -f /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem ]]; then
+    CERT_COMMENT=""
+    CERT_NO_COMMENT="# "
+  fi
 
 fi
 
 
 # Configure nginx
 echo -e "${GREEN}[*]${RESET} Configure nginx.."
-
-systemctl enable --now nginx >> ${LOG_FILE} 2>&1
 
 sed -i "s/user nginx;/user ${USERNAME};/g" /etc/nginx/nginx.conf >> ${LOG_FILE} 2>&1
 check_cmd_status "set default nginx user.."
@@ -368,7 +375,7 @@ fi
 
 cat <<EOF > ${NGINX_SITECONFIG}/${DOMAIN_NAME}.conf
 server {
-        listen 80;
+        ${CERT_NO_COMMENT}listen 80;
         ${CERT_COMMENT}listen 443 ssl http2;
         server_name ${DOMAIN_NAME};
 
@@ -457,7 +464,7 @@ EOF
 
 cat <<EOF > ${NGINX_SITECONFIG}/dev.${DOMAIN_NAME}.conf
 server {
-        listen 80;
+        ${CERT_NO_COMMENT}listen 80;
         ${CERT_COMMENT}listen 443 ssl http2;
         server_name dev.${DOMAIN_NAME};
 
@@ -536,7 +543,7 @@ EOF
 
 cat <<EOF > ${NGINX_SITECONFIG}/staging.${DOMAIN_NAME}.conf
 server {
-        listen 80;
+        ${CERT_NO_COMMENT}listen 80;
         ${CERT_COMMENT}listen 443 ssl http2;
         server_name staging.${DOMAIN_NAME};
 
@@ -632,6 +639,8 @@ fastcgi_index index.php;
 include fastcgi.conf;
 EOF
 
+echo "DONE"
+exit 0
 
 nginx -t >> ${LOG_FILE} 2>&1
 check_cmd_status "test nginx config.."
@@ -695,8 +704,6 @@ mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "${SQL_QUERY}" >> ${LOG_FILE} 2>&1
 
 # Config supervisord
 echo -e "${GREEN}[*]${RESET} Configure supervisor.."
-
-systemctl enable --now supervisord >> ${LOG_FILE} 2>&1
 
 groupadd -f supervisor >> ${LOG_FILE} 2>&1
 check_cmd_status "add group supervisor.."
@@ -766,8 +773,6 @@ fi
 
 # Config redist
 echo -e "${GREEN}[*]${RESET} Configure redis cache.."
-
-systemctl enable --now redis >> ${LOG_FILE} 2>&1
 
 sed -i 's/# maxmemory <bytes>/maxmemory '"${REDIS_MAX_MEMORY}"'/g' /etc/redis.conf >> ${LOG_FILE} 2>&1
 check_cmd_status "set redis maxmemory.."
