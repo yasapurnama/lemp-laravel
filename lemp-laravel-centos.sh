@@ -639,25 +639,12 @@ fastcgi_index index.php;
 include fastcgi.conf;
 EOF
 
-echo "DONE"
-exit 0
-
 nginx -t >> ${LOG_FILE} 2>&1
 check_cmd_status "test nginx config.."
 
 systemctl reload nginx >> ${LOG_FILE} 2>&1
 check_cmd_status "reload nginx service.."
 
-# Check if on AWS server
-if [[ $(curl -s http://169.254.169.252/latest/meta-data/ > /dev/null 2>&1) ]]; then
-  # Disable firewalld replace with aws security group
-  systemctl disable --now firewalld >> ${LOG_FILE} 2>&1
-else
-  # Allow firewall (VMWARE Case)
-  firewall-cmd --zone=public --permanent --add-service=http
-  firewall-cmd --zone=public --permanent --add-service=https
-  firewall-cmd --reload
-fi
 
 # Set Selinux Boolean Value (error in some cases)
 # setsebool -P httpd_enable_homedirs on
