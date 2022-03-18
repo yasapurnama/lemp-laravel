@@ -3,9 +3,7 @@
 ![GitHub all releases](https://img.shields.io/github/downloads/yasapurnama/lemp-laravel/total)
 [![GitHub license](https://img.shields.io/github/license/yasapurnama/lemp-laravel)](https://github.com/yasapurnama/lemp-laravel/blob/master/LICENSE)
 
-LEMP Laravel is automation bash script to install LEMP Stack (Linux, Nginx, MySQL and PHP). The script also install essential services that required by Laravel like redis cache and supervisord. Tested on AWS EC2 `Ubuntu 18.04 LTS` and `Ubuntu 20.04 LTS` server.
-
-**New Update: Added LEMP Laravel for Centos server. For Centos script please read [README_CENTOS.md](README_CENTOS.md)**
+LEMP Laravel is automation bash script to install LEMP Stack (Linux, Nginx, MySQL and PHP). The script also install essential services that required by Laravel like redis cache and supervisord. Tested on AWS EC2 `Centos 7` server.
 
 ![lemp-laravel](https://user-images.githubusercontent.com/12730759/151770303-1ea5e6e9-48e1-4f07-b4ac-ffdd4a1bd588.png)
 
@@ -18,7 +16,7 @@ Login as root
 
 Install essential tools
 ```bash
-  $ apt-get install screen wget curl vim
+  $ yum install screen wget curl vim
 ```
 
 Create screen session
@@ -26,17 +24,17 @@ Create screen session
   $ screen
 ```
 
-### Quick Installer (Option 1)
+### Quick Installer (Option 1)`
 Use quick bash installer with default settings:
 
 ```bash
-  $ curl https://raw.githubusercontent.com/yasapurnama/lemp-laravel/master/lemp-laravel.sh | bash
+  $ curl https://raw.githubusercontent.com/yasapurnama/lemp-laravel/master/lemp-laravel-centos.sh | bash
 ```
 
 ### Manual Install with Custom Variables (Option 2)
 ```bash
-  $ wget https://raw.githubusercontent.com/yasapurnama/lemp-laravel/master/lemp-laravel.sh
-  $ vim lemp-laravel.sh
+  $ wget https://raw.githubusercontent.com/yasapurnama/lemp-laravel/master/lemp-laravel-centos.sh
+  $ vim lemp-laravel-centos.sh
 ```
 
 #### Variable Settings
@@ -64,8 +62,8 @@ Here are variables that you can change base on your need.
 
 #### Execute the script
 ```bash
-  $ chmod +x lemp-laravel.sh
-  $ ./lemp-laravel.sh
+  $ chmod +x lemp-laravel-centos.sh
+  $ ./lemp-laravel-centos.sh
 ```
 
 ### Troubleshoot
