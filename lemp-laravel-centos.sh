@@ -54,7 +54,7 @@ REDIS_MAX_MEMORY="128mb"
 
 
 # Setup Varibales
-while [[ $USERNAME == "" ||  $PASSWORD == "" || $MYSQL_ROOT_PASSWORD == ""  || $PROJECT_DIRECTORY == "" ]]
+while [[ $USERNAME == "" || ${#USERNAME} -gt 8 ||  $PASSWORD == "" || $MYSQL_ROOT_PASSWORD == ""  || $PROJECT_DIRECTORY == "" ]]
 do
   clear
   which curl > /dev/null 2>&1 && curl https://raw.githubusercontent.com/yasapurnama/lemp-laravel/master/banner.txt
@@ -67,9 +67,10 @@ do
   echo -e "DOMAIN_NAME=${DOMAIN_NAME}"
   echo -e "DOMAIN_EMAIL=${DOMAIN_EMAIL}"
   echo ""
+  echo -e "${GREEN}[*]${RESET} Setup Variables:"
 
-  if [[ $USERNAME == "" ]]; then
-    echo -e "${GREEN}[*]${RESET} Setup Variables:"
+  if [[ $USERNAME == "" || ${#USERNAME} -gt 8 ]]; then
+    [[ ${#USERNAME} -gt 8 ]] && echo -e "${RED}Username minimum 8 character${RESET}\n"
     echo -n "USERNAME:"
     read USERNAME
   fi
@@ -811,11 +812,11 @@ echo -e ""
 echo -e "[Website]"
 echo -e "  [PRODUCTION]"
 echo -e "    URL: http://${DOMAIN_NAME}/"
-if [[ STAGING_DOMAIN_IP == SERVER_IP ]]; then
+if [[ $STAGING_DOMAIN_IP == SERVER_IP ]]; then
 echo -e "  [STAGING]"
 echo -e "    URL: http://staging.${DOMAIN_NAME}/"
 fi
-if [[ DEV_DOMAIN_IP == $SERVER_IP ]]; then
+if [[ $DEV_DOMAIN_IP == $SERVER_IP ]]; then
 echo -e "  [DEVELOPMENT]"
 echo -e "    URL: http://dev.${DOMAIN_NAME}/"
 fi
