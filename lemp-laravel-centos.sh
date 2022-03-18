@@ -699,7 +699,7 @@ check_cmd_status "add group supervisor.."
 usermod -aG supervisor root; usermod -aG supervisor ${USERNAME} >> ${LOG_FILE} 2>&1
 check_cmd_status "add user to supervisor group.."
 
-chown root:supervisor /var/run/supervisor/supervisor.sock >> ${LOG_FILE} 2>&1
+chown root:supervisor /var/run/supervisor >> ${LOG_FILE} 2>&1
 check_cmd_status "change owner supervisor sock.."
 
 sed -i 's/chmod=0700/; allow supervisor group\nchown=root:supervisor\nchmod=0770/g' /etc/supervisord.conf >> ${LOG_FILE} 2>&1
@@ -812,7 +812,7 @@ echo -e ""
 echo -e "[Website]"
 echo -e "  [PRODUCTION]"
 echo -e "    URL: http://${DOMAIN_NAME}/"
-if [[ $STAGING_DOMAIN_IP == SERVER_IP ]]; then
+if [[ $STAGING_DOMAIN_IP == $SERVER_IP ]]; then
 echo -e "  [STAGING]"
 echo -e "    URL: http://staging.${DOMAIN_NAME}/"
 fi
