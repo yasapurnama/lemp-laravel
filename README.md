@@ -47,9 +47,9 @@ Here are variables that you can change base on your need.
 | **Variables**  	          | **Default**   | **Note**                                                                                                      |
 |---------------------------|---------------|---------------------------------------------------------------------------------------------------------------|
 | PHP_VERSION    	          | 7.4           | Find LTS support [https://www.php.net/supported-versions.php](https://www.php.net/supported-versions.php)     |
-| PHPMYADMIN_VERSION        | 5.1.1 	      | Check latest version [https://www.phpmyadmin.net/downloads/](https://www.phpmyadmin.net/downloads/)           |
-| NVM_VERSION 	            | v0.39.0       | Check latest version   [https://github.com/nvm-sh/nvm/releases](https://github.com/nvm-sh/nvm/releases)       |
-| NODE_VERSION    	        | v16.13.1      | Find LTS support [https://nodejs.org/en/about/releases/](https://nodejs.org/en/about/releases/)               |
+| PHPMYADMIN_VERSION        | 5.1.3 	      | Check latest version [https://www.phpmyadmin.net/downloads/](https://www.phpmyadmin.net/downloads/)           |
+| NVM_VERSION 	            | v0.39.1       | Check latest version   [https://github.com/nvm-sh/nvm/releases](https://github.com/nvm-sh/nvm/releases)       |
+| NODE_VERSION    	        | v16.14.2      | Find LTS support [https://nodejs.org/en/about/releases/](https://nodejs.org/en/about/releases/)               |
 | NGINX_MAX_BODY_SIZE   	  | 64M           | Nginx max body size                                                                                           |
 | PHP_MEMORY_LIMIT      	  | 128M          | PHP memory limit                                                                                              |
 | PHP_UPLOAD_MAX_FILESIZE  	| 5M            | PHP upload max file size                                                                                      |

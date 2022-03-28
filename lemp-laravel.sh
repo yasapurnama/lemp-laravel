@@ -24,9 +24,9 @@ DOMAIN_EMAIL=""
 
 #Advance Configuration
 PHP_VERSION="7.4" # change base on your need, see LTS support https://www.php.net/supported-versions.php
-PHPMYADMIN_VERSION="5.1.1" # check latest version https://www.phpmyadmin.net/downloads/
-NVM_VERSION="v0.39.0" # check latest version https://github.com/nvm-sh/nvm/releases
-NODE_VERSION="v16.13.1" # change base on your need, see LTS support https://nodejs.org/en/about/releases/
+PHPMYADMIN_VERSION="5.1.3" # check latest version https://www.phpmyadmin.net/downloads/
+NVM_VERSION="v0.39.1" # check latest version https://github.com/nvm-sh/nvm/releases
+NODE_VERSION="v16.14.2" # change base on your need, see LTS support https://nodejs.org/en/about/releases/
 
 #nginx
 NGINX_MAX_BODY_SIZE="64M"
