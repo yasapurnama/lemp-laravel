@@ -18,15 +18,15 @@ fi
 USERNAME=""
 PASSWORD=""
 MYSQL_ROOT_PASSWORD=""
-PROJECT_DIRECTORY=""
+PROJECT_NAME=""
 DOMAIN_NAME=""
 DOMAIN_EMAIL=""
 
 #Advance Configuration
-PHP_VERSION="7.4" # change base on your need, see LTS support https://www.php.net/supported-versions.php
-PHPMYADMIN_VERSION="5.1.3" # check latest version https://www.phpmyadmin.net/downloads/
-NVM_VERSION="v0.39.1" # check latest version https://github.com/nvm-sh/nvm/releases
-NODE_VERSION="v16.14.2" # change base on your need, see LTS support https://nodejs.org/en/about/releases/
+PHP_VERSION="8.5" # change base on your need, see LTS support https://www.php.net/supported-versions.php
+PHPMYADMIN_VERSION="5.2.3" # check latest version https://www.phpmyadmin.net/downloads/
+NVM_VERSION="v0.40.4" # check latest version https://github.com/nvm-sh/nvm/releases
+NODE_VERSION="v22.22.1" # change base on your need, see LTS support https://nodejs.org/en/about/releases/
 
 #nginx
 NGINX_MAX_BODY_SIZE="64M"
@@ -39,19 +39,19 @@ PHP_MAX_EXECUTION_TIME="300"
 PHP_MAX_INPUT_TIME="300"
 PHP_MAX_FILE_UPLOAD="100"
 
-#php-fpm
-FPM_MAX_CHILDREN="50"
-FPM_START_SERVERS="20"
-FPM_MIN_SPARE_SERVERS="10"
-FPM_MAX_SPARE_SERVERS="20"
+#php-fpm (Based on 2CPU and 4GB RAM)
+FPM_MAX_CHILDREN="20"
+FPM_START_SERVERS="6"
+FPM_MIN_SPARE_SERVERS="4"
+FPM_MAX_SPARE_SERVERS="10"
 FPM_MAX_REQUESTS="500"
 
 #redis
-REDIS_MAX_MEMORY="128mb"
+REDIS_MAX_MEMORY="256mb"
 
 
 # Setup Varibales
-while [[ $USERNAME == "" || ${#USERNAME} -gt 8 ||  $PASSWORD == "" || $MYSQL_ROOT_PASSWORD == ""  || $PROJECT_DIRECTORY == "" ]]
+while [[ $USERNAME == "" || ${#USERNAME} -gt 24 ||  $PASSWORD == "" || $MYSQL_ROOT_PASSWORD == ""  || $PROJECT_NAME == "" ]]
 do
     clear
     which curl > /dev/null 2>&1 && curl https://raw.githubusercontent.com/yasapurnama/lemp-laravel/master/banner.txt
@@ -60,14 +60,14 @@ do
     echo -e "USERNAME=${USERNAME}"
     [[ $PASSWORD == "" ]] && echo -e "PASSWORD=" || echo -e "PASSWORD=********"
     [[ $MYSQL_ROOT_PASSWORD == "" ]] && echo -e "MYSQL_ROOT_PASSWORD=" || echo -e "MYSQL_ROOT_PASSWORD=********"
-    echo -e "PROJECT_DIRECTORY=${PROJECT_DIRECTORY}"
+    echo -e "PROJECT_NAME=${PROJECT_NAME}"
     echo -e "DOMAIN_NAME=${DOMAIN_NAME}"
     echo -e "DOMAIN_EMAIL=${DOMAIN_EMAIL}"
     echo ""
     echo -e "${GREEN}[*]${RESET} Setup Variables:"
 
-    if [[ $USERNAME == "" || ${#USERNAME} -gt 8 ]]; then
-        [[ ${#USERNAME} -gt 8 ]] && echo -e "${RED}Username minimum 8 character${RESET}\n"
+    if [[ $USERNAME == "" || ${#USERNAME} -gt 24 ]]; then
+        [[ ${#USERNAME} -gt 24 ]] && echo -e "${RED}Username maximum 24 character${RESET}\n"
         echo -n "USERNAME:"
         read USERNAME
     fi
@@ -82,9 +82,9 @@ do
         read -s MYSQL_ROOT_PASSWORD
     fi
 
-    if [[ $PROJECT_DIRECTORY == "" ]]; then
-        echo -en "\nPROJECT_DIRECTORY:"
-        read PROJECT_DIRECTORY
+    if [[ $PROJECT_NAME == "" ]]; then
+        echo -en "\nPROJECT_NAME:"
+        read PROJECT_NAME
     fi
 
     if [[ $DOMAIN_NAME == "" ]]; then
@@ -258,13 +258,13 @@ check_cmd_status "generate user htpasswd.."
 # Set Project git & directory 
 echo -e "${GREEN}[*]${RESET} Set project directory.."
 
-mkdir -p /home/${USERNAME}/public_html/${PROJECT_DIRECTORY}/prod >> ${LOG_FILE} 2>&1
+mkdir -p /home/${USERNAME}/public_html/${PROJECT_NAME}/prod >> ${LOG_FILE} 2>&1
 check_cmd_status "create project directory prod.."
 
-mkdir -p /home/${USERNAME}/public_html/${PROJECT_DIRECTORY}/dev >> ${LOG_FILE} 2>&1
+mkdir -p /home/${USERNAME}/public_html/${PROJECT_NAME}/dev >> ${LOG_FILE} 2>&1
 check_cmd_status "create project directory dev.."
 
-mkdir -p /home/${USERNAME}/public_html/${PROJECT_DIRECTORY}/staging >> ${LOG_FILE} 2>&1
+mkdir -p /home/${USERNAME}/public_html/${PROJECT_NAME}/staging >> ${LOG_FILE} 2>&1
 check_cmd_status "create project directory staging.."
 
 mkdir -p /home/${USERNAME}/git >> ${LOG_FILE} 2>&1
@@ -369,7 +369,7 @@ server {
 
         ${CERT_COMMENT}ssl_stapling on;
         ${CERT_COMMENT}ssl_stapling_verify on;
-        ${CERT_COMMENT}ssl_trusted_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
+        ${CERT_COMMENT}ssl_trusted_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/chain.pem;
 
         add_header X-Frame-Options "SAMEORIGIN";
         add_header X-Content-Type-Options "nosniff";
@@ -398,7 +398,7 @@ server {
         }
 
         # laravel
-        root /home/${USERNAME}/public_html/${PROJECT_DIRECTORY}/prod/public;
+        root /home/${USERNAME}/public_html/${PROJECT_NAME}/prod/public;
         index index.php index.html index.htm;
 
         location / {
@@ -458,7 +458,7 @@ server {
 
         ${CERT_COMMENT}ssl_stapling on;
         ${CERT_COMMENT}ssl_stapling_verify on;
-        ${CERT_COMMENT}ssl_trusted_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
+        ${CERT_COMMENT}ssl_trusted_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/chain.pem;
 
         add_header X-Frame-Options "SAMEORIGIN";
         add_header X-Content-Type-Options "nosniff";
@@ -487,7 +487,7 @@ server {
         }
 
         # laravel
-        root /home/${USERNAME}/public_html/${PROJECT_DIRECTORY}/dev/public;
+        root /home/${USERNAME}/public_html/${PROJECT_NAME}/dev/public;
         index index.php index.html index.htm;
 
         location / {
@@ -537,7 +537,7 @@ server {
 
         ${CERT_COMMENT}ssl_stapling on;
         ${CERT_COMMENT}ssl_stapling_verify on;
-        ${CERT_COMMENT}ssl_trusted_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
+        ${CERT_COMMENT}ssl_trusted_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/chain.pem;
 
         add_header X-Frame-Options "SAMEORIGIN";
         add_header X-Content-Type-Options "nosniff";
@@ -566,7 +566,7 @@ server {
         }
 
         # laravel
-        root /home/${USERNAME}/public_html/${PROJECT_DIRECTORY}/staging/public;
+        root /home/${USERNAME}/public_html/${PROJECT_NAME}/staging/public;
         index index.php index.html index.htm;
 
         location / {
@@ -666,13 +666,18 @@ mkdir -p /home/${USERNAME}/supervisord.d >> ${LOG_FILE} 2>&1
 check_cmd_status "add supervisord.d config directory for user.."
 
 cat <<EOF > /home/${USERNAME}/supervisord.d/sample-worker.bak
-[program:domain-name-worker]
-command=php /home/${USERNAME}/public_html/${PROJECT_DIRECTORY}/dev/artisan queue:work --sleep=3 --tries=3
+[program:${PROJECT_NAME}-dev-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /home/${USERNAME}/public_html/${PROJECT_NAME}/dev/artisan queue:work --sleep=3 --tries=3 --max-time=3600
 autostart=true
 autorestart=true
+stopasgroup=true
+killasgroup=true
+user=${USERNAME}
+numprocs=1
 redirect_stderr=true
-stderr_logfile = /home/${USERNAME}/public_html/${PROJECT_DIRECTORY}/dev/storage/logs/stderr.log
-#stdout_logfile = /home/${USERNAME}/public_html/${PROJECT_DIRECTORY}/dev/storage/logs/stdout.log
+stdout_logfile=/home/${USERNAME}/public_html/${PROJECT_NAME}/dev/storage/logs/worker.log
+stopwaitsecs=3600
 EOF
 
 chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/supervisord.d >> ${LOG_FILE} 2>&1
