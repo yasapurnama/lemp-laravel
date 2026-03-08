@@ -46,7 +46,7 @@ Here are variables that you can change base on your need.
 |----------------------------|---------------|---------------------------------------------------------------------------------------------------------------|
 | PHP_VERSION                | 8.5           | Find LTS support [https://www.php.net/supported-versions.php](https://www.php.net/supported-versions.php)     |
 | PHPMYADMIN_VERSION         | 5.2.3         | Check latest version [https://www.phpmyadmin.net/downloads/](https://www.phpmyadmin.net/downloads/)           |
-| NVM_VERSION                | v0.4041       | Check latest version [https://github.com/nvm-sh/nvm/releases](https://github.com/nvm-sh/nvm/releases)         |
+| NVM_VERSION                | v0.40.4       | Check latest version [https://github.com/nvm-sh/nvm/releases](https://github.com/nvm-sh/nvm/releases)         |
 | NODE_VERSION               | v22.22.1      | Find LTS support [https://nodejs.org/en/about/releases/](https://nodejs.org/en/about/releases/)               |
 | NGINX_MAX_BODY_SIZE        | 64M           | Nginx max body size                                                                                           |
 | PHP_MEMORY_LIMIT           | 256M          | PHP memory limit                                                                                              |
